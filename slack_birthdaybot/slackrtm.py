@@ -15,7 +15,7 @@ class RtmEvent:
 
 class SlackRtm:
     websocket = None
-    conneced = False
+    connected = False
     bindings = {}
 
     def __init__(self, client, debug=False):
@@ -23,7 +23,7 @@ class SlackRtm:
         self.debug = debug
 
     def connect(self):
-        self.conneced = True
+        self.connected = True
         response = self.client.rtm.start()
         self.websocket = create_connection(response.body['url'])
 
@@ -48,7 +48,7 @@ class SlackRtm:
         return wrapper
 
     def forever(self):
-        while self.conneced:
+        while self.connected:
             event = RtmEvent(self.read())
 
             if self.debug:
@@ -61,5 +61,5 @@ class SlackRtm:
             time.sleep(1)
 
     def disconnect(self):
-        self.conneced = False
+        self.connected = False
         self.websocket.close()
