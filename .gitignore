@@ -1,0 +1,5 @@
+.idea
+__pycache__
+slack_birthdaybot/settings_local.py
+database.db
+*.pyc
