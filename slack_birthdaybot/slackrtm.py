@@ -47,7 +47,7 @@ class SlackRtm:
             self.bindings[event_type].append(func)
         return wrapper
 
-    def forewer(self):
+    def forever(self):
         while self.conneced:
             event = RtmEvent(self.read())
 

@@ -42,6 +42,6 @@ if __name__ == "__main__":
         db.close()
 
     try:
-        rtm.forewer()
+        rtm.forever()
     except KeyboardInterrupt:
         before_exit()
