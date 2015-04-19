@@ -28,11 +28,13 @@ class SlackRtm:
         self.websocket = create_connection(response.body['url'])
 
     def send(**kwargs):
+        data = json.dumps(kwargs)
+
         try:
-            data = json.dumps(kwargs)
             self.websocket.send(data)
         except:
             self.connect()
+            self.websocket.send(data)
 
     def read(self):
         return json.loads(self.websocket.recv())
@@ -54,6 +56,8 @@ class SlackRtm:
                     del self.bindings[index]
 
     def forever(self):
+        self.connect()
+
         while self.connected:
             event = RtmEvent(self.read())
 

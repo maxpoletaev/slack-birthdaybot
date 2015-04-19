@@ -11,7 +11,6 @@ import atexit
 db = shelve.open(settings.DATABASE)
 slack = Slacker(settings.API_KEY)
 rtm = SlackRtm(slack, debug=settings.DEBUG)
-rtm.connect()
 
 
 @rtm.bind("message")
