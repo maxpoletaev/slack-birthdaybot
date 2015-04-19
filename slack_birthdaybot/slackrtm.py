@@ -47,6 +47,12 @@ class SlackRtm:
             self.bindings[event_type].append(func)
         return wrapper
 
+    def unbind(self, event_type, func):
+        if event_type in self.bindings:
+            for index, handler in enumerate(self.bindings[event_type]):
+                if handler == func:
+                    del self.bindings[index]
+
     def forever(self):
         while self.connected:
             event = RtmEvent(self.read())

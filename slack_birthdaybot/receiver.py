@@ -2,7 +2,6 @@ from slacker import Error as SlackError
 from slacker import Slacker
 from datetime import datetime
 from slackrtm import SlackRtm
-from datetime import datetime
 import os, sys, time
 import settings
 import shelve
