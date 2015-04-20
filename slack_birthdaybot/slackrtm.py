@@ -37,7 +37,13 @@ class SlackRtm:
             self.websocket.send(data)
 
     def read(self):
-        return json.loads(self.websocket.recv())
+        try:
+            data = self.websocket.recv()
+        except:
+            self.connect()
+            data = self.websocket.recv()
+
+        return json.loads(data)
 
     def ping(self):
         self.send(type="ping")
