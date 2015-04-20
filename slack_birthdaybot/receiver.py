@@ -18,7 +18,7 @@ def send_hello(user_id):
     slack.chat.post_message(channel, message, username=settings.USERNAME)
 
 
-# @rtm.bind("hello")
+@rtm.bind("hello")
 def send_hello_on_init(event):
     db = shelve.open(settings.DATABASE)
     for user in slack.users.list().body["members"]:
@@ -34,7 +34,7 @@ def send_hello_on_init(event):
     db.close()
 
 
-# @rtm.bind("presence_change")
+@rtm.bind("presence_change")
 def send_hello_on_presence_change(event):
     db = shelve.open(settings.DATABASE)
     if event.user not in db and event.presence == "active":
