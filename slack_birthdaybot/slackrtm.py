@@ -25,7 +25,7 @@ class SlackRtm:
     def connect(self):
         self.connected = True
         response = self.client.rtm.start()
-        self.websocket = create_connection(response.body['url'])
+        self.websocket = create_connection(response.body["url"])
 
     def send(**kwargs):
         data = json.dumps(kwargs)
