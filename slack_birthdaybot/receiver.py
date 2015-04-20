@@ -8,7 +8,6 @@ import shelve
 import atexit
 
 
-db = shelve.open(settings.DATABASE)
 slack = Slacker(settings.API_KEY)
 rtm = SlackRtm(slack, debug=settings.DEBUG)
 
@@ -21,6 +20,7 @@ def send_hello(user_id):
 
 @rtm.bind("hello")
 def send_hello_on_init(event):
+    db = shelve.open(settings.DATABASE)
     for user in slack.users.list().body["members"]:
         deleted = user["deleted"]
         user_id = user["id"]
@@ -31,15 +31,17 @@ def send_hello_on_init(event):
                 send_hello(user_id)
                 db[user_id] = {}
 
-    db.sync()
+    db.close()
 
 
 @rtm.bind("presence_change")
 def send_hello_on_presence_change(event):
+    db = shelve.open(settings.DATABASE)
     if event.user not in db and event.presence == "active":
         send_hello(event.user)
         db[event.user] = {}
-        db.sync()
+
+    db.close()
 
 
 @rtm.bind("message")
@@ -49,15 +51,18 @@ def save_user_date(event):
         return
 
     try:
-        date = datetime.strptime(event.text, "%d.%m.%Y").date()
-        if event.user not in db: db[event.user] = {}
-        db[event.user]["birthday"] = date
-        db.sync()
+        text = event.text.strip()
+        date = datetime.strptime(text, "%d.%m.%Y").date()
     except ValueError:
         msg = "Я понимаю только даты в формате 01.12.1990."
-    else:
-        msg = "Запомнил!"
+        slack.chat.post_message(event.channel, msg, username=settings.USERNAME)
+        return
 
+    with shelve.open(settings.DATABASE) as db:
+        if event.user not in db: db[event.user] = {}
+        db[event.user]["birthday"] = date
+
+    msg = "Запомнил!"
     slack.chat.post_message(event.channel, msg, username=settings.USERNAME)
 
 
@@ -67,7 +72,6 @@ if __name__ == "__main__":
     @atexit.register
     def before_exit():
         rtm.disconnect()
-        db.close()
 
     try:
         rtm.forever()
