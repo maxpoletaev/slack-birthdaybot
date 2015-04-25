@@ -4,8 +4,6 @@ import sys
 
 API_KEY = None
 
-NOTIFIER_CHANNEL = "general"
-
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 DATABASE = path.join(BASE_DIR, "database.db")

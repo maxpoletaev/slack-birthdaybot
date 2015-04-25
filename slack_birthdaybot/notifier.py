@@ -1,19 +1,50 @@
 from datetime import date, datetime, timedelta
 from slacker import Slacker
 import settings
+import random
 import shelve
 
 
 slack = Slacker(settings.API_KEY)
-delta = timedelta(days=7)
+week_delta = timedelta(days=7)
+two_day_delta = timedelta(days=2)
 today = date.today()
+
+
+def random_smile():
+    smiles = [":data:", ":gift:", ":birthday:", ":balloon:"]
+    return random.choice(smiles)
+
+
+def send_message(message, exclude=[]):
+    for user in slack.users.list().body["members"]:
+        user_id = user["id"]
+        if not user["deleted"] and user_id not in exclude:
+            channel = slack.im.open(user_id).body["channel"]["id"]
+            slack.chat.post_message(channel, message, username=settings.USERNAME)
+
+
+def date_from_birthday(birthday):
+    months = ("января", "февраля", "марта", "апреля", "мая", "июня",
+        "июля", "августа", "сентября", "октября", "ноября", "декабря")
+    return "%s %s" % (birthday.day, months[birthday.month - 1])
+
 
 with shelve.open(settings.DATABASE) as db:
     for user_id, user_data in db.items():
         if "birthday" in user_data:
             birthday = user_data["birthday"].replace(year=today.year)
 
-            if birthday - delta == today:
+            if birthday - week_delta == today:
                 info = slack.users.info(user_id).body
-                message = "Господа, через неделю %s отмечает День Рождения." % info["user"]["real_name"]
-                slack.chat.post_message("#" + settings.NOTIFIER_CHANNEL, message, username=settings.USERNAME)
+                message = "Псс… Через неделю, %s числа, %s отмечает День Рождения %s" %
+                    (date_from_birthday(birthday), info["user"]["real_name"], random_smile())
+
+                send_message(message, exclude=[user_id])
+
+            elif birthday - two_days_delta == today:
+                info = slack.users.info(user_id).body
+                message = "Псс… Послезавтра %s отмечает День Рождения %s" %
+                    (info["user"]["real_name"], random_smile())
+
+                send_message(message, exclude=[user_id])
