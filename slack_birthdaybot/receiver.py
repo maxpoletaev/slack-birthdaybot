@@ -44,25 +44,86 @@ def send_hello_on_presence_change(event):
     db.close()
 
 
-@rtm.bind("message")
-def save_user_date(event):
+@rtm.command("set")
+def set_birthday(event, date=None):
     if not event.channel.startswith("D"):
-        """ Is not direct message. """
         return
 
-    try:
-        text = event.text.strip()
-        date = datetime.strptime(text, "%d.%m.%Y").date()
-    except ValueError:
-        msg = "Я понимаю только даты в формате 01.12.1990."
+    if not date:
+        msg = "Я ожидал услышать что-то вроде `!set 01.12.1990`."
         slack.chat.post_message(event.channel, msg, username=settings.USERNAME)
         return
+
+    if isinstance(date, str):
+        try:
+            date = datetime.strptime(date, "%d.%m.%Y").date()
+        except ValueError:
+            msg = "Я понимаю только даты в формате 01.12.1990."
+            slack.chat.post_message(event.channel, msg, username=settings.USERNAME)
+            return
 
     with shelve.open(settings.DATABASE) as db:
         db[event.user] = {"birthday": date}
 
     msg = "Запомнил!"
     slack.chat.post_message(event.channel, msg, username=settings.USERNAME)
+
+
+@rtm.command("get")
+def get_birthday(event):
+    if not event.channel.startswith("D"):
+        return
+
+    with shelve.open(settings.DATABASE) as db:
+        if event.user in db and "birthday" in db[event.user]:
+            msg = "Твоя дата рождения: %s" % db[event.user]["birthday"]
+            slack.chat.post_message(event.channel, msg)
+        else:
+            msg = ("Я еще не знаю твою дату рождения. "
+                "Чтобы её установить, напиши `!set 10.03.1990`")
+            slack.chat.post_message(event.channel, msg)
+
+
+
+@rtm.command("reset")
+def reset_birthday(event):
+    if not event.channel.startswith("D"):
+        return
+
+    with shelve.open(settings.DATABASE, writeback=True) as db:
+        if event.user in db and "birthday" in db[event.user]:
+            del db[event.user]["birthday"]
+
+    slack.chat.post_message(event.channel, "Потрачено!")
+
+
+@rtm.command("default")
+def show_help(event):
+    if not event.channel.startswith("D"):
+        return
+
+    commands = "\n".join([
+        "`!set 10.03.1990` — Установить ваш День Рождения",
+        "`!get` — Показать ваш День Рождения",
+        "`!reset` — Сбросить ваш День Рождения",
+    ])
+
+    slack.chat.post_message(event.channel, commands)
+
+
+@rtm.bind("message")
+def set_birthday_from_message(event):
+    if not event.channel.startswith("D"):
+        return
+
+    try:
+        text = event.text.strip()
+        date = datetime.strptime(text, "%d.%m.%Y").date()
+    except ValueError:
+        return
+
+    event.prevent_command = True
+    set_birthday(event, date)
 
 
 if __name__ == "__main__":
@@ -73,6 +134,6 @@ if __name__ == "__main__":
         rtm.disconnect()
 
     try:
-        rtm.forever()
+        rtm.main_loop()
     except KeyboardInterrupt:
         before_exit()
