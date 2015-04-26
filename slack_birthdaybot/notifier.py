@@ -37,14 +37,16 @@ with shelve.open(settings.DATABASE) as db:
 
             if birthday - week_delta == today:
                 info = slack.users.info(user_id).body
-                message = "Псс… Через неделю, %s числа, %s отмечает День Рождения %s" %
-                    (date_from_birthday(birthday), info["user"]["real_name"], random_smile())
+                human_date = date_from_birthday(birthday)
+
+                message = "Псс… Через неделю, {date}, {name} отмечает День Рождения {smile}" \
+                    .format(date=human_date, name=info["user"]["real_name"], smile=random_smile())
 
                 send_message(message, exclude=[user_id])
 
             elif birthday - two_days_delta == today:
                 info = slack.users.info(user_id).body
-                message = "Псс… Послезавтра %s отмечает День Рождения %s" %
-                    (info["user"]["real_name"], random_smile())
+                message = "Псс… Послезавтра {name} отмечает День Рождения {smile}" \
+                    .format(name=info["user"]["real_name"], smile=random_smile())
 
                 send_message(message, exclude=[user_id])
