@@ -80,9 +80,8 @@ def get_birthday(event):
             slack.chat.post_message(event.channel, msg)
         else:
             msg = ("Я еще не знаю твою дату рождения. "
-                "Чтобы её установить, напиши `!set 10.03.1990`")
+                   "Чтобы её установить, напиши `!set 10.03.1990`")
             slack.chat.post_message(event.channel, msg)
-
 
 
 @rtm.command("reset")
