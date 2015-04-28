@@ -25,8 +25,8 @@ def send_message(message, exclude=[]):
 
 
 def date_from_birthday(birthday):
-    months = ("января", "февраля", "марта", "апреля", "мая", "июня",
-        "июля", "августа", "сентября", "октября", "ноября", "декабря")
+    months = ("января", "февраля", "марта", "апреля", "мая", "июня", "июля",
+              "августа", "сентября", "октября", "ноября", "декабря")
     return "%s %s" % (birthday.day, months[birthday.month - 1])
 
 
@@ -44,7 +44,7 @@ with shelve.open(settings.DATABASE) as db:
 
                 send_message(message, exclude=[user_id])
 
-            elif birthday - two_days_delta == today:
+            elif birthday - two_day_delta == today:
                 info = slack.users.info(user_id).body
                 message = "Псс… Послезавтра {name} отмечает День Рождения {smile}" \
                     .format(name=info["user"]["real_name"], smile=random_smile())
