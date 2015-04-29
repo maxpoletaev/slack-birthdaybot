@@ -77,11 +77,11 @@ def get_birthday(event):
     with shelve.open(settings.DATABASE) as db:
         if event.user in db and "birthday" in db[event.user]:
             msg = "Твоя дата рождения: %s" % db[event.user]["birthday"]
-            slack.chat.post_message(event.channel, msg)
+            slack.chat.post_message(event.channel, msg, username=settings.USERNAME)
         else:
             msg = ("Я еще не знаю твою дату рождения. "
                    "Чтобы её установить, напиши `!set 10.03.1990`")
-            slack.chat.post_message(event.channel, msg)
+            slack.chat.post_message(event.channel, msg, username=settings.USERNAME)
 
 
 @rtm.command("reset")
@@ -93,7 +93,7 @@ def reset_birthday(event):
         if event.user in db and "birthday" in db[event.user]:
             del db[event.user]["birthday"]
 
-    slack.chat.post_message(event.channel, "Потрачено!")
+    slack.chat.post_message(event.channel, "Потрачено!", username=settings.USERNAME)
 
 
 @rtm.command("default")
@@ -107,7 +107,7 @@ def show_help(event):
         "`!reset` — Сбросить ваш День Рождения",
     ])
 
-    slack.chat.post_message(event.channel, commands)
+    slack.chat.post_message(event.channel, commands, username=settings.USERNAME)
 
 
 @rtm.bind("message")
