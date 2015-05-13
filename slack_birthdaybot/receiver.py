@@ -99,6 +99,9 @@ def reset_birthday(event):
 
 @rtm.command("soon")
 def soon_birthday(event):
+    if not event.channel.startswith("D"):
+        return
+
     today = date.today()
     sorted_users = {}
 
