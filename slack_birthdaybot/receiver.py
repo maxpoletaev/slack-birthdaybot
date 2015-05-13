@@ -1,7 +1,8 @@
 from slacker import Error as SlackError
-from slacker import Slacker
-from datetime import datetime
+from utils import date_from_birthday
+from datetime import datetime, date
 from slackrtm import SlackRtm
+from slacker import Slacker
 import os, sys, time
 import settings
 import shelve
@@ -96,12 +97,48 @@ def reset_birthday(event):
     slack.chat.post_message(event.channel, "Потрачено!", username=settings.USERNAME)
 
 
+@rtm.command("soon")
+def soon_birthday(event):
+    today = date.today()
+    sorted_users = {}
+
+    def sort_by_bday(x):
+        if "birthday" not in x[1]:
+            return today
+
+        birthday = x[1]["birthday"]
+        return birthday.replace(year=today.year if birthday.replace(year=today.year) >= today else today.year + 1)
+
+    with shelve.open(settings.DATABASE) as db:
+        sorted_users = sorted(db.items(), key=sort_by_bday)
+
+    output = []
+    current_index, limit = (0, 3)
+
+    for user_id, user in sorted_users:
+        if current_index == limit:
+            break
+
+        if "birthday" in user:
+            info = slack.users.info(user_id).body
+            output.append("{date} — {user_name}".format(
+                date=date_from_birthday(user["birthday"]),
+                user_name=info["user"]["real_name"]
+            ))
+
+            current_index += 1
+
+    output = "\n".join(output)
+    slack.chat.post_message(event.channel, output, username=settings.USERNAME)
+
+
 @rtm.command("default")
 def show_help(event):
     if not event.channel.startswith("D"):
         return
 
     commands = "\n".join([
+        "`!soon` — Показать ближайшие Дни Рождения",
         "`!set 10.03.1990` — Установить ваш День Рождения",
         "`!get` — Показать ваш День Рождения",
         "`!reset` — Сбросить ваш День Рождения",

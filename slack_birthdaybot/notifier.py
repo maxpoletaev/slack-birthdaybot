@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from utils import date_from_birthday
 from slacker import Slacker
 import settings
 import random
@@ -12,7 +13,7 @@ today = date.today()
 
 
 def random_smile():
-    smiles = [":data:", ":gift:", ":birthday:", ":balloon:"]
+    smiles = [":tada:", ":gift:", ":birthday:", ":balloon:"]
     return random.choice(smiles)
 
 
@@ -22,12 +23,6 @@ def send_message(message, exclude=[]):
         if not user["deleted"] and user_id not in exclude:
             channel = slack.im.open(user_id).body["channel"]["id"]
             slack.chat.post_message(channel, message, username=settings.USERNAME)
-
-
-def date_from_birthday(birthday):
-    months = ("января", "февраля", "марта", "апреля", "мая", "июня", "июля",
-              "августа", "сентября", "октября", "ноября", "декабря")
-    return "%s %s" % (birthday.day, months[birthday.month - 1])
 
 
 with shelve.open(settings.DATABASE) as db:
